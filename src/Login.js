@@ -2,8 +2,6 @@ import React, { useState, useContext } from "react";
 import { AuthContext } from "./Signin";
 import * as firebase from 'firebase'
 import { withRouter } from 'react-router-dom'
-import { Link } from "react-router-dom";
-import { Redirect } from 'react-router';
 
 const Login = ({history}) => {
   const [email, setEmail] = useState("");
@@ -68,7 +66,8 @@ const Login = ({history}) => {
           placeholder="password"
         />
         <hr />
-        <button onClick={() => signInWithGoogle()} className="googleBtn" type="button">
+        <button type ="submit">Log In</button>
+        <button onClick={() => signInWithGoogle()} className="loginGoogleButton" type="button">
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
             alt="logo"
@@ -76,10 +75,6 @@ const Login = ({history}) => {
           />
           Login With Google
         </button>
-
-          <button type="submit">
-            Log In
-          </button>
 
         <span>{error}</span>
       </form>

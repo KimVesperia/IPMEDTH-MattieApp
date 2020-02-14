@@ -1,23 +1,14 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { Switch, BrowserRouter as Router, Route } from "react-router-dom";
-import { Link } from "react-router-dom";
-import {Button, Card, CardActions, CardContent, CardHeader, CssBaseline, Grid, Typography, Container, ListItem, ListItemIcon, ListItemText} from '@material-ui/core/';
-import routes0 from "./Routes0.js";
+import {Button, Card, CardActions, CardHeader, Grid, ListItem, ListItemText, Container} from '@material-ui/core/';
 import routes1 from "./Routes1.js";
-import Header from "./Header";
 import { Redirect } from 'react-router';
-import StarIcon from '@material-ui/icons/StarBorder';
-import Login from "./Login";
-import Register from "./Register";
+import Login2 from "./Login2";
+import Routes from "./Login/Routes";
 
-import protectedRoutes from './protectedRoutes'
-import protectedRoutes2 from './protectedRoutes2'
-import protectedRoutes3 from './protectedRoutes3'
-import protectedRoutes4 from './protectedRoutes4'
 import * as firebase from "firebase";
 import firebaseConfig from "./firebaseConfig";
-import ProtectedRouteHoc from './ProtectedRouteHoc'
 import { makeStyles } from '@material-ui/core/styles';
 import 'firebase/auth';
 import 'firebase/database';
@@ -25,13 +16,13 @@ import 'firebase/database';
 const useStyles = makeStyles(theme => ({
   '@global': {
     body: {
-      backgroundColor: theme.palette.common.white,
-    },
-    nav: {
-      display: 'none',
-    },
-    header: {
-      visibility: 'hidden',
+      height: '100vh',
+      // backgroundImage: 'rgb(32,210,255)',
+      backgroundImage: 'linear-gradient(125deg, rgba(32,210,255,1) 0%, rgba(150,61,254,1) 100%)',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
     },
     ul: {
       margin: 0,
@@ -50,17 +41,32 @@ const useStyles = makeStyles(theme => ({
   toolbarTitle: {
     flexGrow: 1,
   },
-  link: {
-    margin: theme.spacing(1, 1.5),
+  linkButton: {
+    color: 'rgb(91, 134, 253)',
+    margin: theme.spacing(2, 0, 2),
+    border: '1px solid rgb(91, 134, 253)',
+    borderRadius: '5px',
+    textAlign: 'center',
   },
   heroContent: {
     padding: theme.spacing(8, 0, 6),
-  },
-  cardHeader: {
-    backgroundColor: theme.palette.grey[200],
+    color: 'white',
   },
   headerCarten: {
     display: 'inherit',
+  },
+  loginButton: {
+    margin: theme.spacing(2, 0, 2),
+    backgroundColor: 'rgb(91, 134, 253)',
+    color: 'white',
+    borderRadius: '5px',
+    textAlign: 'center',
+  },
+  loginGoogleButton: {
+    margin: theme.spacing(2, 0, 2),
+    backgroundColor: '#efefef',
+    borderRadius: '5px',
+    textAlign: 'center',
   },
   footer: {
     borderTop: `1px solid ${theme.palette.divider}`,
@@ -80,8 +86,8 @@ export const AuthContext = React.createContext(null);
 
 export default function App() {
   const classes = useStyles();
-  const [isLoggedIn, setLoggedIn] = useState(false);
   const user = firebase.auth().currentUser;
+  const [isLoggedIn, setLoggedIn] = useState(false);
 
   function readSession() {
     const user = window.sessionStorage.getItem(
@@ -97,80 +103,66 @@ export default function App() {
 if (isLoggedIn) {
     // User is signed in.
     return (
-      <Router>
-
-        <Button href ="/recieveexperiencepoints">Test</Button>
-      </Router>
+      <div>
+        {(() => {
+          if (user ? user.Y.W === 'DeUOkW1weFdz7cEx6Bwtfxq1WNe2': "") {
+            return (
+                  <Redirect push to="/homeworklist"></Redirect>
+            )
+          } else if (user ? user.Y.W !== 'DeUOkW1weFdz7cEx6Bwtfxq1WNe2': "") {
+            return (
+                <Redirect push to="/ReceiveExperiencePoints"></Redirect>
+            )
+          }
+        })()}
+      </div>
   );
 }
 
 if (!isLoggedIn) {
   return  (
   <AuthContext.Provider value={{ isLoggedIn, setLoggedIn }}>
-    Is logged in? {JSON.stringify(isLoggedIn)}
     <div className="App">
-
-
-      <Container maxWidth="sm" component="main" className={classes.heroContent}>
-        <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
-          Inloggen of Registreren
-        </Typography>
-      </Container>
       <Container maxWidth="md" component="main">
-        <Grid container spacing={5} alignItems="flex-end">
+      <Grid container spacing={0} direction="column" alignItems="center" justify="center">
 
             <Grid item xs={12} sm={6} md={6}>
-              <Card>
+
+              <Card style={{padding: '30px'}}>
                 <CardHeader
-                    title={'Registreer'}
-                    subheader={'Maak een account aan'}
+                    title={'Online'}
+                    subheader={'Log in om door te gaan!'}
                     titleTypographyProps={{ align: 'center' }}
                     subheaderTypographyProps={{ align: 'center' }}
-                    action={ <StarIcon /> }
-                    className={classes.cardHeader}
-                />
-                <CardActions className={classes.headerCarten}>
-                  {/*<Button fullWidth variant='contained' color="primary" href="/experiencepoints"></Button>*/}
-                  <Router>
-                  <ListItem button component={Link} to="/register">
-                    <ListItemText primary={"Registreer"} />
-                  </ListItem>
-                  <Switch>
-                  {routes0.map(route => (
-                    <Route
-                      key={route.path}
-                      path={route.path}
-                      exact={route.exact}
-                      component={route.main}
-                    />
-                  ))}
-                  </Switch>
-
-                </Router>
-
-
-                </CardActions>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={6}>
-              <Card>
-                <CardHeader
-                    title={'Inloggen'}
-                    subheader={'Log in met je account'}
-                    titleTypographyProps={{ align: 'center' }}
-                    subheaderTypographyProps={{ align: 'center' }}
-                    action={ <StarIcon /> }
                     className={classes.cardHeader}
                 />
 
                 <CardActions className={classes.headerCarten}>
-                  {/*<Button fullWidth variant='contained' color="primary" href="/experiencepoints"></Button>*/}
                   <Router>
-                  <ListItem button component={Link} to="/login">
-                    <ListItemText primary={"Login"} />
-                  </ListItem>
+                  <form className={classes.form} noValidate>
 
+                    <Login2></Login2>
+
+                    <Grid item xs={12}>
+
+                      {/* <div style={{display: 'inline-block', width: '100%'}}>
+                        <Button type="submit" variant="contained" className={classes.linkButton} href="/register">
+                            Ik heb nog geen account
+                        </Button>
+                      </div> */}
+
+                      <ListItem button type="submit" component="button" href="/register" className={classes.linkButton}>
+                          <ListItemText primary={"Ik heb nog geen account"} />
+                      </ListItem>
+
+                    </Grid>
+
+                    {/*<FormControlLabel
+                      control={<Checkbox value="remember" color="primary" />}
+                      label="Onthoud mij"
+                    />*/}
+
+                  </form>
                   <Switch>
                   {routes1.map(route => (
                     <Route
@@ -188,16 +180,10 @@ if (!isLoggedIn) {
                 </CardActions>
               </Card>
             </Grid>
-
-
         </Grid>
       </Container>
     </div>
   </AuthContext.Provider>);
-
 }
 
 }
-
-const rootElement = document.getElementById("root");
-ReactDOM.render(<App />, rootElement);

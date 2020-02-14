@@ -1,0 +1,106 @@
+.root {
+    flex-grow: 1;
+}
+
+a {
+  text-decoration: none;
+}
+
+.card {
+    margin: 20px;
+}
+
+.title {
+    font-size: 14px;
+}
+
+.pos {
+    margin-bottom: 12px !important;
+}
+
+.fixedHeight {
+    height: 240px;
+}
+
+.table {
+    min-width: 650px;
+    background-color: #FFFFFF;
+  }
+
+.paper {
+    margin: 20px;
+}
+
+.welcome {
+    margin-left: 20px;
+}
+
+.cardInfo {
+    margin-left: 20px !important;
+    margin-top: 35px !important;
+}
+
+.btnClear {
+    color: rgb(68, 157, 68) !important;
+    border: 1px solid rgb(68, 157, 68) !important;
+}
+
+.btnClear1 {
+    background-color: rgb(68, 157, 68) !important;
+}
+
+.btnClear1:hover {
+    background-color: rgb(43, 98, 43) !important;
+}
+
+.btnClear2 {
+    background-color: rgb(220, 0, 78) !important;
+}
+
+.btnClear2:hover {
+    background-color: rgb(154, 0, 54) !important;
+}
+
+.welcomeToolBar {
+  background-color:#3f5cfc;
+  color: white;
+  padding-bottom: 20px;
+}
+
+.cardInfo2 {
+    margin-left: 20px !important;
+}
+
+/* .MuiToolbar-root.MuiToolbar-regular.MuiToolbar-gutters {
+    border-bottom: 1px solid lightgray;
+} */
+
+.progressBar {
+  margin-bottom: 3px;
+  /* theme.spacing(3); */
+  background-color: #1976d269 !important;
+}
+
+.cardten {
+max-height: 190px;
+}
+
+.MuiLinearProgress-barColorPrimary {
+    background-color: white !important;
+}
+
+.removeStyleButton:hover {
+    box-shadow: none !important;
+    background-color: white !important;
+    padding: 6px 0px !important;
+}
+
+.removeStyleButton {
+    padding: 6px 0px !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+}
+
+.alertColor > .MuiAlert-icon {
+    color: #3f5cfc !important;
+}

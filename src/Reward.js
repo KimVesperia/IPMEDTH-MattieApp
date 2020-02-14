@@ -106,7 +106,7 @@ export default function Pricing() {
                 <CardContent>
                     <ul>
                         <Typography component="li" variant="subtitle1" align="center">
-                          Speel nieuwe badges vrij door het behalen van je leerdoelen!
+                          Speel nieuwe badges vrij door het behalen van je doelwitten!
                         </Typography>
                     </ul>
                 </CardContent>

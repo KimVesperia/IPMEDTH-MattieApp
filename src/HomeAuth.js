@@ -1,7 +1,10 @@
 import React from 'react';
-import {Avatar, Button, CssBaseline, Paper, Grid, Typography, Stepper, Step, StepLabel } from '@material-ui/core/';
+import {Button, Grid, Typography, Stepper, Step, StepLabel } from '@material-ui/core/';
+import { Switch, BrowserRouter as Router, Route } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { Link } from "react-router-dom";
 
 const theme = createMuiTheme({
   overrides: {
@@ -11,22 +14,65 @@ const theme = createMuiTheme({
         border: 'none',
       },
     },
+    MuiStepLabel: {
+      label: {
+          color: '#ffffff',
+          '&$active': {
+              color: '#ffffff',
+              fontWeight: '0',
+          },
+      },
+      iconContainer: {
+        paddingRight: '12px',
+      }
+    },
+    MuiStepIcon: {
+      root: {
+        color: '#ffffff',
+        '&$active': {
+          color: '#ffffff'
+        }
+      },
+      text: {
+        fill: "#5f82fe",
+      },
+    },
+    MuiSvgIcon: {
+      root: {
+        fontSize: "2.5rem",
+      }
+    },
+    MuiStepConnector: {
+      lineVertical: {
+        minHeight: "80px",
+        borderLeftWidth: "3px",
+      },
+      line: {
+        borderColor: '#ffffff'
+      },
+      vertical: {
+        marginLeft: "18px",
+        padding: "0 0 0px",
+      }
+    },
+    MuiTypography: {
+      body2: {
+        fontSize: "1.5rem"
+      }
+    }
   },
+
 });
 
 const useStyles = makeStyles(theme => ({
   '@global': {
     body: {
-      backgroundImage: 'url("gradient.jpg")',
+      // backgroundImage: 'rgb(32,210,255)',
+      backgroundImage: 'linear-gradient(125deg, rgba(32,210,255,1) 0%, rgba(150,61,254,1) 100%)',
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
-    },
-    nav: {
-      display: 'none',
-    },
-    header: {
-      visibility: 'hidden',
+      backgroundAttachment: 'fixed',
     },
     ul: {
       margin: 0,
@@ -36,19 +82,8 @@ const useStyles = makeStyles(theme => ({
       listStyle: 'none',
     },
   },
-    MuiPaper:{
-      backgroundColor: "transparant",
-    },
     content: {
       height: '100vh',
-    },
-    background: {
-      // backgroundImage: 'linear-gradient(70deg, #f59038  30%, rgba(0,0,0,0) 30%), linear-gradient(30deg, #FFFFFF 60%, #3f5cfc 60%);',
-      // backgroundImage: 'linear-gradient(to right bottom, #3f5cfc, #8482ff, #b2aaff, #dad4ff, #ffffff)',
-      backgroundImage: 'url("gradient.jpg")',
-      backgroundRepeat: 'no-repeat',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
     },
     paper: {
       margin: theme.spacing(8, 4),
@@ -64,10 +99,16 @@ const useStyles = makeStyles(theme => ({
       width: '100%',
       marginTop: theme.spacing(1),
     },
-    submit: {
+    start: {
       margin: theme.spacing(3, 0, 2),
       backgroundColor: 'white',
-      color: 'rgb(91, 134, 253)'
+      color: 'rgb(91, 134, 253)',
+    },
+    submit: {
+      margin: theme.spacing(3, 0, 2),
+      backgroundColor: 'transparent !important',
+      border: '1px solid white',
+      color: 'white',
     },
     stepDiv: {
       width: '90%',
@@ -77,50 +118,79 @@ const useStyles = makeStyles(theme => ({
     },
     title: {
       flexGrow: 1,
-    }
+    },
+    h1: {
+        [theme.breakpoints.down('sm')]: {
+            fontSize: '50px',
+        },
+        [theme.breakpoints.up('md')]: {
+            fontSize: '80px',
+        },
+        [theme.breakpoints.up('lg')]: {
+            fontSize: '80px',
+        },
+    },
+    h2: {
+        [theme.breakpoints.down('xs')]: {
+            fontSize: '20px',
+        },
+        [theme.breakpoints.down('sm')]: {
+            fontSize: '20px',
+        },
+        [theme.breakpoints.up('md')]: {
+            fontSize: '30px',
+        },
+        [theme.breakpoints.up('lg')]: {
+            fontSize: '30px',
+        },
+    },
 }));
 
 export default function SignInSide() {
     const classes = useStyles();
+    const mobile = useMediaQuery('(max-width:600px)');
 
     return (
-        <Grid container component="main" className={`${classes.content} ${classes.background}`} spacing={0} alignItems="center" justify="center">
-            <CssBaseline />
-            <Grid item xs={12} sm={6} md={6} >
-            <div style={{color: 'white', marginLeft: '150px'}}>
-                {/* <Avatar className={classes.avatar}>M</Avatar> */}
-                <Typography variant="h2" gutterBottom>
+        <Grid container component="main" className={`${classes.content}`} alignItems="center" justify="center">
+            <Grid item xs={12} sm={6} style={{color: "white", textAlign: mobile ? "center" : "left"}}>
+                <Typography className={classes.h1} variant="h1"  gutterBottom>
                     Mattie App
                 </Typography>
-                <Typography variant="h5" paragraph>
-                    Met Mattie heb jij de regie over je eigen leerproces.
-                    Stel je curriculum samen en plan je leerdoelen in!
-                </Typography>
-                <Typography variant="body1" paragraph>
-                    Vul jouw profiel in en claim jouw eerste beloning.
+                <Typography className={classes.h2} variant="h2" paragraph>
+                    Met Mattie heb jij de regie over je eigen leerweg.
+                    <br/>
+                    Kies je vakken en maak huiswerk wanneer je wilt.
                 </Typography>
 
-                <Button type="submit" variant="contained" className={classes.submit} href="/signin">
-                    Start nu
-                </Button>
-                </div>
+                <Grid container>
+                  <Grid item xs={12} sm={4} md={3} lg={2} xl={2}>
+                      <Button variant='contained' color="contained" className={classes.start} href="/register">
+                          Start nu
+                      </Button>
+                  </Grid>
+
+                  <Grid item xs={12} sm={8} md={6} lg={4} xl={4}>
+                      <Button type="submit" variant='contained' className={classes.submit} href="/signin">
+                          Ik heb al een account
+                      </Button>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} sm={6} md={6} >
+            </Grid>
 
+            <Grid item xs={9} sm={7} md={2} lg={3} xl={4}>
                 <ThemeProvider theme={theme}>
                   <Stepper orientation="vertical" className={classes.MuiPaper}>
                     <Step>
                         <StepLabel>Planning opstellen</StepLabel>
                     </Step>
                     <Step>
-                        <StepLabel>Leerdoelen behalen</StepLabel>
+                        <StepLabel>Doelwitten behalen</StepLabel>
                     </Step>
                     <Step>
-                        <StepLabel>Certificeren</StepLabel>
+                        <StepLabel>Versterken</StepLabel>
                     </Step>
                   </Stepper>
                 </ThemeProvider>
-                  {/* <img src={'smoken.png'} alt="image" /> */}
             </Grid>
         </Grid>
     )

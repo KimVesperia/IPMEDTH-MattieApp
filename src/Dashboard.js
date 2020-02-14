@@ -1,257 +1,837 @@
-import React , {useState, useContext} from 'react';
-import {Grid, Card, Step, Stepper, StepLabel, CardActions, CardContent, Button, Typography, LinearProgress, Avatar, Badge, Box}  from '@material-ui/core/';
-import { makeStyles } from '@material-ui/core/styles';
-import { withStyles } from '@material-ui/core/styles';
+import React from 'react';
+import { Grid, Card, Divider, CardContent, Button, Typography }  from '@material-ui/core/';
 import { Redirect } from 'react-router';
+import { Link } from 'react-router-dom';
+
+import SnackbarComp from "./SnackbarComp";
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import Collapse from '@material-ui/core/Collapse';
+import PriorityHighIcon from '@material-ui/icons/PriorityHigh';
+import LowPriorityIcon from '@material-ui/icons/LowPriority';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import MenuBookIcon from '@material-ui/icons/MenuBook';
+import ExposurePlus1Icon from '@material-ui/icons/ExposurePlus1';
+import ExposurePlus2Icon from '@material-ui/icons/ExposurePlus2';
+import FeedbackIcon from '@material-ui/icons/Feedback';
 
-import StarIcon from '@material-ui/icons/Star';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+
 import * as firebase from "firebase";
 import 'firebase/database';
+import './dashboard.css'
 
-// Graph
-import { Chart } from "react-google-charts";
+export function Welcome() {
+    var weekday = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
+    var monthday = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'];
+    var monthYear = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
 
-const StyledBadge1 = withStyles(theme => ({
-    badge: {
-      right: -4,
-      padding: '0 5px',
-    },
-  }))(Badge);
+    // Dinsdag
+    const getDay = () => {
+        var currentDay = new Date();
+        var dayOfTheWeek = weekday[currentDay.getDay()];
+        return dayOfTheWeek;
+     }
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        flexGrow: 1,
-        // grijze achtergrond
-        backgroundColor: '#fafafa',
-    },
-    card: {
-        margin: 20,
-    },
-    title: {
-        fontSize: 14,
-    },
-    pos: {
-        marginBottom: 12,
-    },
-    fixedHeight: {
-        height: 240,
-    },
-}));
+     //  10
+     const getDate = () => {
+        var currentDate = new Date();
+        var dayOfTheMonth = monthday[currentDate.getDate() - 1];
+        return dayOfTheMonth;
+     }
 
-const dataLineGraph = [
-    ["Maand", "Leerdoelen behaald"],
-    ["januari", 0],
-    ["februari", 1],
-    ["maart", 2],
-    ["april", 2],
-    ["mei", 2],
-    ["juni", 3],
-    ["juli", 4]
-];
-const optionsLineGraph = {
-    curveType: "function",
-    legend: { position: "bottom" }
-};
-const dataCalendarGrapgh = [
-    [{ type: 'date', id: 'Date' }, { type: 'number', id: 'Won/Loss' }],
-    [new Date(2019, 1, 13), 1],
-    [new Date(2019, 2, 14), 1],
-    [new Date(2019, 3, 15), 2],
-    [new Date(2019, 3, 16), 2],
-    [new Date(2019, 7, 17), 3],
-    [new Date(2019, 8, 17), 3],
-    [new Date(2019, 11, 17), 4],
-    [new Date(2019, 11, 17), 4],
-];
+     //  December
+     const getMonth = () => {
+        var currentMonth = new Date();
+        var monthInYear = monthYear[currentMonth.getMonth()];
+        return monthInYear;
+     }
 
-class App extends React.Component {
+     // 2019
+    const getYear = () => {
+        const currentYear = new Date().getFullYear();
+        return currentYear;
+    }
+
+    const day = getDay();
+    const date = getDate();
+    const month = getMonth();
+    const year = getYear();
+
+     return (
+        day + ' ' + date + ' ' + month + ' ' + year
+     );
+}
+
+class Dashboard extends React.Component {
+
   constructor(props) {
     super(props);
 
     this.state = {
-      profile: []
+      open: false,
+      count: 0,
+      ToDoList: true,
+      PriorityList: true,
+      name: [],
+      courseNL: [],
+      courseEN: [],
+      course1: [],
+      course2: [],
+      course3: [],
+      course4: [],
+      course5: [],
+      homeWorkStatus: [],
+      activeSnackbar: false,
     };
   }
 
   componentDidMount() {
     this.getUserData();
+    this.getUserName();
+    this.getHomeWorkNL();
+    this.getHomeWorkEN();
+    this.getHomeWork1();
+    this.getHomeWork2();
+    this.getHomeWork3();
+    this.getHomeWork4();
+    this.getHomeWork5();
+    this.getHomeWorkStatus();
   }
 
+  componentWillMount() {
+        firebase.auth().onAuthStateChanged(
+            (user) => {
+                this.forceUpdate();
+            }
+        );
+    }
+
   getUserData = () => {
-    const user = firebase.auth().currentUser;
-    const ref = firebase.database().ref('/users/' + user.uid);
+    const ref = firebase.database().ref('/');
     ref.on("value", snapshot => {
       const state = snapshot.val();
       this.setState(state);
     });
   };
 
-  render() {
-    const { profile } = this.state;
-    const user = firebase.auth().currentUser;
+  getUserName = () => {
+    const user = firebase.auth();
+    const ref = firebase.database().ref('/users/' + user.W + '/persoonsgegevens/' + 'naam');
+    ref.on("value", snapshot => {
+      const state = snapshot.val();
+      this.setState({name: state}, function () {
+          return this.state.name;
+      });
+    });
+  };
 
-    if (user) {
+  getHomeWorkStatus = () => {
+    const user = firebase.auth();
+    const ref = firebase.database().ref('/users/' + user.W + '/vakken');
+    ref.on("value", snapshot => {
+      const state = snapshot.val();
+      this.setState({homeWorkStatus: state}, function () {
+          return this.state.homeWorkStatus;
+      });
+    });
+  };
+
+  getHomeWorkNL = () => {
+    const user = firebase.auth();
+    const hwArray = [];
+    firebase.database().ref('/users/' + user.W).on('value', function(snap) {
+      snap.forEach(function(studenthw){
+        hwArray.push(studenthw.val());
+      })
+    })
+    this.setState({courseNL: hwArray})
+  };
+
+  getHomeWorkEN = () => {
+    const user = firebase.auth();
+    const hwArray = [];
+    firebase.database().ref('/users/' + user.W).on('value', function(snap) {
+      snap.forEach(function(studenthw){
+        hwArray.push(studenthw.val());
+      })
+    })
+    this.setState({courseEN: hwArray})
+  };
+
+  getHomeWork1 = () => {
+    const user = firebase.auth();
+    const hwArray = [];
+    firebase.database().ref('/users/' + user.W).on('value', function(snap) {
+      snap.forEach(function(studenthw){
+        hwArray.push(studenthw.val());
+      })
+    })
+    this.setState({course1: hwArray})
+  };
+
+  getHomeWork2 = () => {
+    const user = firebase.auth();
+    const hwArray = [];
+    firebase.database().ref('/users/' + user.W).on('value', function(snap) {
+      snap.forEach(function(studenthw){
+        hwArray.push(studenthw.val());
+      })
+    })
+    this.setState({course2: hwArray})
+  };
+
+  getHomeWork3 = () => {
+    const user = firebase.auth();
+    const hwArray = [];
+    firebase.database().ref('/users/' + user.W).on('value', function(snap) {
+      snap.forEach(function(studenthw){
+        hwArray.push(studenthw.val());
+      })
+    })
+    this.setState({course3: hwArray})
+  };
+
+  getHomeWork4 = () => {
+    const user = firebase.auth();
+    const hwArray = [];
+    firebase.database().ref('/users/' + user.W).on('value', function(snap) {
+      snap.forEach(function(studenthw){
+        hwArray.push(studenthw.val());
+      })
+    })
+    this.setState({course4: hwArray})
+  };
+
+  getHomeWork5 = () => {
+    const user = firebase.auth();
+    const hwArray = [];
+    firebase.database().ref('/users/' + user.W).on('value', function(snap) {
+      snap.forEach(function(studenthw){
+        hwArray.push(studenthw.val());
+      })
+    })
+    this.setState({course5: hwArray})
+  };
+
+  render() {
+    const columns = [
+        { id: 'vak', label: 'Vak'},
+        { id: 'deadlineDatum', label: '(uiterste) Inleverdatum'},
+        { id: 'status', label: 'Status'},
+        { id: 'actie', label: 'Actie'},
+    ];
+    function createData(vak, deadlineDatum, status, actie) {
+        return { vak, deadlineDatum, status, actie};
+    }
+
+    const rowsNL = [
+        createData('Nederlands', 'Week 1', 'Ingeschreven', <Link to='/homework'><Button variant="contained" color="primary" endIcon={<MenuBookIcon/>}> Maak Huiswerk</Button></Link>)
+    ];
+
+    const rowsEN = [
+        createData('Engels', 'Week 2', 'Ingeschreven', <Link to='/homework'><Button variant="contained" color="primary" endIcon={<MenuBookIcon/>}> Maak Huiswerk</Button></Link>)
+    ];
+
+    const rowsCourse1 = [
+        createData('Caravanhersteller', 'Week 2', 'Ingeschreven', <Link to='/homework'><Button variant="contained" color="primary" endIcon={<MenuBookIcon/>}> Maak Huiswerk</Button></Link>)
+    ];
+
+    const rowsCourse2 = [
+        createData('Medewerker Montage/Demontage', 'Week 2', 'Ingeschreven', <Link to='/homework'><Button variant="contained" color="primary" endIcon={<MenuBookIcon/>}> Maak Huiswerk</Button></Link>)
+    ];
+
+    const rowsCourse3 = [
+        createData('Medewerker Poetsbedrijf', 'Week 2', 'Ingeschreven', <Link to='/homework'><Button variant="contained" color="primary" endIcon={<MenuBookIcon/>}> Maak Huiswerk</Button></Link>)
+    ];
+
+    const rowsCourse4 = [
+        createData('Assistent Fietsenmaker', 'Week 2', 'Ingeschreven', <Link to='/homework'><Button variant="contained" color="primary" endIcon={<MenuBookIcon/>}> Maak Huiswerk</Button></Link>)
+    ];
+
+    const rowsCourse5 = [
+        createData('Assistent Monteur', 'Week 2', 'Ingeschreven', <Link to='/homework'><Button variant="contained" color="primary" endIcon={<MenuBookIcon/>}> Maak Huiswerk</Button></Link>)
+    ];
+
+    const rowsEMPTY = [
+        createData('Geen openstaand huiswerk', '', '', <Link to='/Curriculum'><Button variant="outlined" color="primary" endIcon={<MenuBookIcon/>}> Naar Leerplan</Button></Link>)
+    ];
+
+    const user = firebase.auth();
+
+    const handleClickToDoList = () => {
+      this.setState(prevState => ({
+        ToDoList: !prevState.ToDoList
+      }));
+    };
+
+    const handleClickPriorityList = () => {
+       this.setState(prevState => ({
+         PriorityList: !prevState.PriorityList
+       }));
+     };
+
+    const listName = this.state.name;
+
+    const listHomeWorkStatus = this.state.homeWorkStatus;
+
+    const listHomeWorkNL = this.state.courseNL.map((studenthuiswerk) =>
+      studenthuiswerk.nederlands ? studenthuiswerk.nederlands.status : ""
+    )
+
+    const listHomeWorkEN = this.state.courseEN.map((studenthuiswerk) =>
+      studenthuiswerk.engels ? studenthuiswerk.engels.status : ""
+    )
+
+    const listHomeWorkCourse1 = this.state.course1.map((studenthuiswerk) =>
+      studenthuiswerk.caravanhersteller ? studenthuiswerk.caravanhersteller.status : ""
+    )
+
+    const listHomeWorkCourse2 = this.state.course2.map((studenthuiswerk) =>
+      studenthuiswerk.medewerker_montage ? studenthuiswerk.medewerker_montage.status : ""
+    )
+
+    const listHomeWorkCourse3 = this.state.course3.map((studenthuiswerk) =>
+      studenthuiswerk.medewerker_poetsbedrijf ? studenthuiswerk.medewerker_poetsbedrijf.status : ""
+    )
+
+    const listHomeWorkCourse4 = this.state.course4.map((studenthuiswerk) =>
+      studenthuiswerk.assistent_fietsenmaker ? studenthuiswerk.assistent_fietsenmaker.status : ""
+    )
+
+    const listHomeWorkCourse5 = this.state.course5.map((studenthuiswerk) =>
+      studenthuiswerk.assistent_monteur ? studenthuiswerk.assistent_monteur.status : ""
+    )
+
+    var hwCheck = false;
+
+    function displayName(){
+     if(listName === null | listName === "") {
+       return(
+         <Typography style={{ float: 'left', marginLeft: '25px', fontWeight: '500', fontSize: '26px', letterSpacing: '0.5',}}>
+          Welkom!
+          <Typography>
+          <Welcome></Welcome>
+          </Typography>
+         </Typography>
+         );
+     } else {
+         return(
+           <Typography style={{ float: 'left', marginLeft: '25px', fontWeight: '500', fontSize: '26px', letterSpacing: '0.5',}}>
+            Welkom, {listName}!<br/>
+            <Typography>
+            <Welcome></Welcome>
+            </Typography>
+           </Typography>
+         );
+       }
+    }
+
+    function homeWork(){
+     if(listHomeWorkNL.includes('Ingeschreven')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><ExposurePlus2Icon></ExposurePlus2Icon></ListItemIcon>
+              <ListItemText primary="Nederlands Huiswerk" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     }
+     else if(listHomeWorkEN.includes('Ingeschreven')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><ExposurePlus2Icon></ExposurePlus2Icon></ListItemIcon>
+              <ListItemText primary="Engels Huiswerk" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     }
+     else if(listHomeWorkCourse1.includes('Ingeschreven')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><ExposurePlus2Icon></ExposurePlus2Icon></ListItemIcon>
+              <ListItemText primary="Caravan Huiswerk" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     }
+     else if(listHomeWorkCourse2.includes('Ingeschreven')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><ExposurePlus2Icon></ExposurePlus2Icon></ListItemIcon>
+              <ListItemText primary="Montage Huiswerk" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     }
+     else if(listHomeWorkCourse3.includes('Ingeschreven')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><ExposurePlus2Icon></ExposurePlus2Icon></ListItemIcon>
+              <ListItemText primary="Poetsbedrijf Huiswerk" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     }
+     else if(listHomeWorkCourse4.includes('Ingeschreven')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><ExposurePlus2Icon></ExposurePlus2Icon></ListItemIcon>
+              <ListItemText primary="Fietsenmaker Huiswerk" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     }
+     else if(listHomeWorkCourse5.includes('Ingeschreven')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><ExposurePlus2Icon></ExposurePlus2Icon></ListItemIcon>
+              <ListItemText primary="Monteur Huiswerk" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     } else {
+        return(<div></div>);
+      }
+    }
+
+    function feedBackNL(){
+     if(listHomeWorkNL.includes('Goedgekeurd') || listHomeWorkNL.includes('Afgekeurd')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><FeedbackIcon></FeedbackIcon></ListItemIcon>
+              <ListItemText primary="Terugkoppeling Nederlands" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     } else {
+       return(<div></div>);
+     }
+    }
+
+    function feedBackEN() {
+     if(listHomeWorkEN.includes('Goedgekeurd') || listHomeWorkEN.includes('Afgekeurd')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><FeedbackIcon></FeedbackIcon></ListItemIcon>
+              <ListItemText primary="Terugkoppeling Engels" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     } else {
+       return(<div></div>);
+     }
+    }
+
+    function feedBackCourse1() {
+     if(listHomeWorkCourse1.includes('Goedgekeurd') || listHomeWorkCourse1.includes('Afgekeurd')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><FeedbackIcon></FeedbackIcon></ListItemIcon>
+              <ListItemText primary="Terugkoppeling Caravanhersteller" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     } else {
+       return(<div></div>);
+     }
+    }
+
+    function feedBackCourse2() {
+     if(listHomeWorkCourse2.includes('Goedgekeurd') || listHomeWorkCourse2.includes('Afgekeurd')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><FeedbackIcon></FeedbackIcon></ListItemIcon>
+              <ListItemText primary="Terugkoppeling Montage" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     } else {
+       return(<div></div>);
+     }
+    }
+
+    function feedBackCourse3() {
+     if(listHomeWorkCourse3.includes('Goedgekeurd') || listHomeWorkCourse3.includes('Afgekeurd')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><FeedbackIcon></FeedbackIcon></ListItemIcon>
+              <ListItemText primary="Terugkoppeling Poetsbedrijf" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     } else {
+       return(<div></div>);
+     }
+    }
+
+    function feedBackCourse4() {
+     if(listHomeWorkCourse4.includes('Goedgekeurd') || listHomeWorkCourse4.includes('Afgekeurd')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><FeedbackIcon></FeedbackIcon></ListItemIcon>
+              <ListItemText primary="Terugkoppeling Fietsenmaker" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     } else {
+       return(<div></div>);
+     }
+    }
+
+    function feedBackCourse5() {
+     if(listHomeWorkCourse5.includes('Goedgekeurd') || listHomeWorkCourse5.includes('Afgekeurd')) {
+       return(
+         <Link to="homework">
+           <ListItem button>
+              <ListItemIcon><FeedbackIcon></FeedbackIcon></ListItemIcon>
+              <ListItemText primary="Terugkoppeling Monteur" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     } else {
+       return(<div></div>);
+     }
+    }
+
+    function noHomeWork(){
+     if(!listHomeWorkStatus) {
+       return(
+         <Link to="Curriculum">
+           <ListItem button>
+               <ListItemIcon><ExposurePlus1Icon></ExposurePlus1Icon></ListItemIcon>
+                  <ListItemText primary="Vakken Kiezen" style={{textAlign: 'left', color: 'red'}} />
+           </ListItem>
+         </Link>
+         );
+     } else {
+       return(<div></div>);
+     }
+    }
+
+    function noProfile(){
+      if(listName == null) {
+         return(
+           <Link to="Profile">
+             <ListItem button>
+                 <ListItemIcon><ExposurePlus1Icon></ExposurePlus1Icon></ListItemIcon>
+                    <ListItemText primary="Profiel Opstellen" style={{textAlign: 'left', color: 'red'}} />
+             </ListItem>
+           </Link>
+           );
+       } else {
+          return(<div></div>);
+        }
+    }
+
+    if (user.currentUser) {
       // User is signed in.
       return (
-        <div >
-          <Grid container>
+        <div className="root">
+            <Grid container>
+                  {/* Begroeting */}
+                  <Grid item xs={12} className="welcomeToolBar">
+                          {displayName()}
+                  </Grid>
 
-            <Grid item xs={12} style={{ marginTop: 30, marginLeft: 20 }}>
+                  {/* To do list */}
+                  <Grid item xs={12} sm={4} >
+                    <Grid item xs={12} className="cardInfo">
+                        <Typography component="h4" variant="h5">Wat moet ik doen?</Typography>
+                    </Grid>
+                    <Card className="card">
+                        <CardContent>
+                            <List>
+                                <ListItem button onClick={handleClickPriorityList} style={{color: '#3f5cfc'}}>
+                                    <ListItemIcon style={{color: '#3f5cfc'}}>
+                                        <PriorityHighIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Belangrijkste punt" />
+                                    {this.state.PriorityList ? <ExpandLess /> : <ExpandMore />}
+                                </ListItem>
 
-              <Typography component="h4" variant="h5" color="primary" gutterBottom>
-                Dashboard Hallo {user.email}
-                {profile.map(user => (
-                    <div className="card-body">
-                      <h5 className="card-title">Hallo {user.name}!</h5>
-                      <p className="card-text">Jouw roll is {user.role}!</p>
-                    </div>
-                ))}
-              </Typography>
-            </Grid>
+                                <Collapse in={this.state.PriorityList} timeout="auto" unmountOnExit>
+                                    <List component="div" disablePadding>
+                                        {homeWork()}
+                                        {noProfile()}
+                                        {noHomeWork()}
+                                        {feedBackNL()}
+                                        {feedBackEN()}
+                                        {feedBackCourse1()}
+                                        {feedBackCourse2()}
+                                        {feedBackCourse3()}
+                                        {feedBackCourse4()}
+                                        {feedBackCourse5()}
+                                    <ListItem button>
+                                        <ListItemIcon></ListItemIcon>
+                                        <ListItemText primary="Doelwitten opstellen" style={{textAlign: 'left'}} />
+                                    </ListItem>
+                                    </List>
+                                    <Divider />
+                                </Collapse>
 
-            <Grid item xs={4}>
-              <Card >
-                <CardContent>
-                  <Grid item xs={12} md={12}>
-                                        <Typography style={{fontSize: '1.2rem'}} component="h4" variant="h5" color="primary" gutterBottom>
-                                            Beloningen
-                                        </Typography>
-                                        <div>
-                                            <List component="nav" aria-label="main mailbox folders">
-                                                <ListItem button>
-                                                <ListItemIcon>
-                                                    <Box m={1}>
-                                                        <StyledBadge1 badgeContent={'XP'} color="primary">
-                                                            <Avatar style={{backgroundColor: '#3855f5'}}>100</Avatar>
-                                                        </StyledBadge1>
-                                                    </Box>
-                                                </ListItemIcon>
-                                                <ListItemText primary="Profiel opstellen" />
-                                                </ListItem>
-                                                <ListItem button>
-                                                <ListItemIcon>
-                                                    <Box m={1}>
-                                                        <StyledBadge1 badgeContent={'XP'} color="primary">
-                                                            <Avatar style={{backgroundColor: '#3855f5'}}>500</Avatar>
-                                                        </StyledBadge1>
-                                                    </Box>
-                                                </ListItemIcon>
-                                                <ListItemText  primary="Curriculum samenstellen" />
-                                                </ListItem>
-                                            </List>
+                                <ListItem button onClick={handleClickToDoList}>
+                                    <ListItemIcon>
+                                        <LowPriorityIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Algemeen" />
+                                    {this.state.ToDoList ? <ExpandLess /> : <ExpandMore />}
+                                </ListItem>
 
-                                         </div>
+                                <Collapse in={this.state.ToDoList} timeout="auto" unmountOnExit>
+                                    <List component="div" disablePadding>
+                                        <ListItem button component={Link} to='/homework' className="nestedGeneral">
+                                            <ListItemIcon></ListItemIcon>
+                                            <ListItemText primary="Huiswerk Overzicht" />
+                                        </ListItem>
+
+                                        <ListItem button component={Link} to='/homework' className="nestedGeneral">
+                                            <ListItemIcon></ListItemIcon>
+                                            <ListItemText primary="Feedback" />
+                                        </ListItem>
+
+                                    </List>
+                                </Collapse>
+
+                                </List>
+                        </CardContent>
+                    </Card>
 
                   </Grid>
-                </CardContent>
-              </Card>
+                  {/* Tabel */}
+                  <Grid item sm={8}>
+                      <Grid item xs={12} className="cardInfo">
+                          <Typography component="h4" variant="h5">Openstaande Huiswerk</Typography>
+                      </Grid>
+                      <Paper className="paper">
+                          <Table className="table" aria-label="simple table">
+                              <TableHead>
+
+                                  <TableRow>
+                                      {columns.map(column => (
+                                          <TableCell
+                                          key={column.id}
+                                          align={column.align}
+                                          style={{ minWidth: column.minWidth, backgroundColor: '#ffffff' }}
+                                          >
+                                          {column.label}
+                                          </TableCell>
+                                      ))}
+                                  </TableRow>
+
+                              </TableHead>
+
+                              <TableBody>
+                              {/*Nederlands 1*/}
+                              {(() => {
+                                if (listHomeWorkNL.includes('Ingeschreven')) {
+                                  hwCheck = true;
+                                  return (
+                                    <div style={{display: 'contents'}}>
+                                      {rowsNL.map(row => (
+                                          <TableRow hover role="checkbox" tabIndex={-1} key={row.studentnummer}>
+                                          {columns.map(column => {
+                                            const value = row[column.id];
+                                            return (
+                                              <TableCell key={column.id}>
+                                                {column.format && typeof value === 'number' ? column.format(value) : value}
+                                              </TableCell>
+                                            );
+                                          })}
+                                        </TableRow>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                              })()}
+                              {/*Engels 1*/}
+                              {(() => {
+                                if (listHomeWorkEN.includes('Ingeschreven')) {
+                                  hwCheck = true;
+                                  return (
+                                    <div style={{display: 'contents'}}>
+                                      {rowsEN.map(row => (
+                                          <TableRow hover role="checkbox" tabIndex={-1} key={row.studentnummer}>
+                                          {columns.map(column => {
+                                            const value = row[column.id];
+                                            return (
+                                              <TableCell key={column.id}>
+                                                {column.format && typeof value === 'number' ? column.format(value) : value}
+                                              </TableCell>
+                                            );
+                                          })}
+                                        </TableRow>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                              })()}
+                              {/*Caravanhersteller 1*/}
+                              {(() => {
+                                if (listHomeWorkCourse1.includes('Ingeschreven')) {
+                                  hwCheck = true;
+                                  return (
+                                    <div style={{display: 'contents'}}>
+                                      {rowsCourse1.map(row => (
+                                          <TableRow hover role="checkbox" tabIndex={-1} key={row.studentnummer}>
+                                          {columns.map(column => {
+                                            const value = row[column.id];
+                                            return (
+                                              <TableCell key={column.id}>
+                                                {column.format && typeof value === 'number' ? column.format(value) : value}
+                                              </TableCell>
+                                            );
+                                          })}
+                                        </TableRow>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                              })()}
+                              {/*Medewerker Montage/Demontage 1*/}
+                              {(() => {
+                                if (listHomeWorkCourse2.includes('Ingeschreven')) {
+                                  hwCheck = true;
+                                  return (
+                                    <div style={{display: 'contents'}}>
+                                      {rowsCourse2.map(row => (
+                                          <TableRow hover role="checkbox" tabIndex={-1} key={row.studentnummer}>
+                                          {columns.map(column => {
+                                            const value = row[column.id];
+                                            return (
+                                              <TableCell key={column.id}>
+                                                {column.format && typeof value === 'number' ? column.format(value) : value}
+                                              </TableCell>
+                                            );
+                                          })}
+                                        </TableRow>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                              })()}
+                              {/*Medewerker Poetsbedrijf 1*/}
+                              {(() => {
+                                if (listHomeWorkCourse3.includes('Ingeschreven')) {
+                                  hwCheck = true;
+                                  return (
+                                    <div style={{display: 'contents'}}>
+                                      {rowsCourse3.map(row => (
+                                          <TableRow hover role="checkbox" tabIndex={-1} key={row.studentnummer}>
+                                          {columns.map(column => {
+                                            const value = row[column.id];
+                                            return (
+                                              <TableCell key={column.id}>
+                                                {column.format && typeof value === 'number' ? column.format(value) : value}
+                                              </TableCell>
+                                            );
+                                          })}
+                                        </TableRow>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                              })()}
+                              {/*Assistent Fietsenmaker 1*/}
+                              {(() => {
+                                if (listHomeWorkCourse4.includes('Ingeschreven')) {
+                                  hwCheck = true;
+                                  return (
+                                    <div style={{display: 'contents'}}>
+                                      {rowsCourse4.map(row => (
+                                          <TableRow hover role="checkbox" tabIndex={-1} key={row.studentnummer}>
+                                          {columns.map(column => {
+                                            const value = row[column.id];
+                                            return (
+                                              <TableCell key={column.id}>
+                                                {column.format && typeof value === 'number' ? column.format(value) : value}
+                                              </TableCell>
+                                            );
+                                          })}
+                                        </TableRow>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                              })()}
+                              {/*Assistent Monteur 1*/}
+                              {(() => {
+                                if (listHomeWorkCourse5.includes('Ingeschreven')) {
+                                  hwCheck = true;
+                                  return (
+                                    <div style={{display: 'contents'}}>
+                                      {rowsCourse5.map(row => (
+                                          <TableRow hover role="checkbox" tabIndex={-1} key={row.studentnummer}>
+                                          {columns.map(column => {
+                                            const value = row[column.id];
+                                            return (
+                                              <TableCell key={column.id}>
+                                                {column.format && typeof value === 'number' ? column.format(value) : value}
+                                              </TableCell>
+                                            );
+                                          })}
+                                        </TableRow>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                              })()}
+                              {/*NO HOMEWORK*/}
+                              {(() => {
+                                if (hwCheck === false) {
+                                  return (
+                                    <div style={{display: 'contents'}}>
+                                      {rowsEMPTY.map(row => (
+                                          <TableRow hover role="checkbox" tabIndex={-1} key={row.studentnummer}>
+                                          {columns.map(column => {
+                                            const value = row[column.id];
+                                            return (
+                                              <TableCell key={column.id}>
+                                                {column.format && typeof value === 'number' ? column.format(value) : value}
+                                              </TableCell>
+                                            );
+                                          })}
+                                        </TableRow>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                              })()}
+                              </TableBody>
+                          </Table>
+                      </Paper>
+                  </Grid>
             </Grid>
-
-            <Grid item xs={12} sm={4} >
-                            <Card >
-                                <CardContent>
-                                    <Typography style={{fontSize: '1.2rem'}} component="h4" variant="h5" color="primary" gutterBottom>
-                                        Volgende stap
-                                    </Typography>
-                                    <Stepper activeStep={1} nonLinear alternativeLabel>
-                                        <Step completed={true}>
-                                            <StepLabel>Profiel opgesteld</StepLabel>
-                                        </Step>
-                                        <Step>
-                                            <StepLabel>Curriculum samenstellen</StepLabel>
-                                        </Step>
-                                        <Step>
-                                            <StepLabel>Leerdoelen inplannen</StepLabel>
-                                        </Step>
-                                    </Stepper>
-
-                                    <CardActions>
-                                        <Button size="small">Alle stappen</Button>
-                                    </CardActions>
-
-                                </CardContent>
-                            </Card>
-            </Grid>
-
-            <Grid item xs={4}>
-                            <Card >
-                                <CardContent>
-                                <Grid container direction="row" alignItems="center">
-                                    <Grid item>
-                                        <Typography style={{fontSize: '1.2rem'}} component="h4" variant="h5" color="primary" gutterBottom>
-                                            Voortgang
-                                        </Typography>
-                                    </Grid>
-                                    <Grid item>
-                                        <StarIcon style={{marginLeft: 280,fontSize: 30, color:'#3855f5' }}/>
-                                    </Grid>
-                                </Grid>
-
-                                <Typography component="h2" style={{marginBottom:10, marginTop: 5}}>
-                                Level 1 - 1000/1000 XP
-                                </Typography>
-                                <LinearProgress style={{color: 'white'}} variant="determinate" value={100} />
-
-                                </CardContent>
-                                {/* <CardActions>
-                                    <Button style={{color: 'white'}} size="small">Naar profiel</Button>
-                                </CardActions> */}
-                            </Card>
-            </Grid>
-
-          </Grid>
-
-          <Grid container>
-                        <Grid item xs={12} sm={6} >
-                                <Card >
-                                    <CardContent>
-                                        <Typography style={{fontSize: '1.2rem'}} component="h4" variant="h5" color="primary" gutterBottom>
-                                            Vordering curriculum
-                                        </Typography>
-                                            <div className="App">
-                                                <Chart
-                                                chartType="LineChart"
-                                                width="100%"
-                                                height="250px"
-                                                data={dataLineGraph}
-                                                options={optionsLineGraph}
-                                                />
-                                            </div>
-                                    </CardContent>
-                                </Card>
-                            </Grid>
-
-                        <Grid item xs={12} sm={6}>
-                            <Card >
-                                <CardContent>
-                                        <Typography style={{fontSize: '1.2rem'}} component="h4" variant="h5" color="primary" gutterBottom>
-                                            Jaarplanning
-                                        </Typography>
-                                        <div className="App">
-                                            <Chart
-                                            chartType="Calendar"
-                                            width="99%"
-                                            height="220px"
-                                            data={dataCalendarGrapgh}
-                                            />
-                                        </div>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-          </Grid>
         </div>
       );
     }
 
-    if (!user) {
-      return  (<Redirect push to="/signin" />);
+    if (!user.currentUser) {
+        return  (<Redirect push to="/signin" />);
     }
   }
 }
 
-export default App;
+export default Dashboard;
